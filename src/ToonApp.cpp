@@ -1,6 +1,8 @@
 #include "ToonApp.h"
 #include "FileSystem.h"
 #include <iostream>
+#include "URDFLoader.h"
+#include "Robot.h"
 
 ToonApp::ToonApp(int width, int height, const char* title) 
     : scrWidth(width), scrHeight(height), firstMouse(true), mouseCaptured(true),
@@ -17,7 +19,8 @@ ToonApp::ToonApp(int width, int height, const char* title)
     regularShader = std::make_shared<Shader>(FileSystem::getPath("shaders/regularshader.glsl"));
     postProcessShader = std::make_shared<Shader>(FileSystem::getPath("shaders/passthrough.glsl"));
     activeScene = std::make_unique<Scene>();
-    kukaRobot = std::make_unique<KukaRobot>(glm::vec3(0, 0, 0));
+    robot = std::make_unique<Robot>(glm::vec3(0,0,0));
+    URDFLoader::Load("assets/kuka/urdf/iiwa14_no_collision.urdf", *robot);
     
     // Create scene with plane
     activeScene->physics->CreateStaticPlane();
@@ -131,7 +134,7 @@ void ToonApp::Update() {
 }
 
 void ToonApp::RenderScene() {
-    if (!regularShader || !camera || !kukaRobot) return; // Safety check
+    if (!regularShader || !camera) return; // Safety check
 
     glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -152,8 +155,9 @@ void ToonApp::RenderScene() {
     // modelMatrix = glm::rotate(modelMatrix, (float)glfwGetTime() * glm::radians(modelRotSpeed), glm::vec3(0.0f, 1.0f, 0.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f)); 
     regularShader->setMat4("model", modelMatrix);
-    kukaRobot->Draw(regularShader.get());
     activeScene->Draw(regularShader.get());
+
+    robot->Draw(regularShader.get());
 
 }
 
@@ -170,17 +174,6 @@ void ToonApp::RenderUI() {
     // ImGui::SliderFloat("Scale", &modelScale, 0.001f, 1.0f);
     // ImGui::SliderFloat("Rotation", &modelRotSpeed, 0.0f, 100.0f);
     ImGui::Text(mouseCaptured ? "GAME MODE (ALT to unlock)" : "UI MODE (ALT to capture)");
-    ImGui::End();
-
-        ImGui::Begin("Robot Control");
-    // We start at 1 because Link 0 is the static base
-    ImGui::SliderFloat("Joint 1", &kukaRobot->links[1].currentAngle, -170.0f, 170.0f);
-    ImGui::SliderFloat("Joint 2", &kukaRobot->links[2].currentAngle, -120.0f, 120.0f);
-    ImGui::SliderFloat("Joint 3", &kukaRobot->links[3].currentAngle, -170.0f, 170.0f);
-    ImGui::SliderFloat("Joint 4", &kukaRobot->links[4].currentAngle, -120.0f, 120.0f);
-    ImGui::SliderFloat("Joint 5", &kukaRobot->links[5].currentAngle, -170.0f, 170.0f);
-    ImGui::SliderFloat("Joint 6", &kukaRobot->links[6].currentAngle, -120.0f, 120.0f);
-    ImGui::SliderFloat("Joint 7", &kukaRobot->links[7].currentAngle, -175.0f, 175.0f);
     ImGui::End();
 
     ImGui::Render();

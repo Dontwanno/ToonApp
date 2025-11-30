@@ -2,3 +2,4 @@
 /.vscode
 /CMakePresets.json
 /out
+src/.DS_Store

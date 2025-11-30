@@ -13,9 +13,7 @@
 #include "Model.h"
 #include "Scene.h"
 #include "Entity.h"
-#include "Kuka.h"
-
-
+#include "Robot.h"
 
 class ToonApp {
 public:
@@ -40,7 +38,7 @@ private:
     std::shared_ptr<Shader> regularShader;
     std::shared_ptr<Shader> postProcessShader;
     std::shared_ptr<Model> backpackModel; 
-    std::unique_ptr<KukaRobot> kukaRobot;
+    std::unique_ptr<Robot> robot;
 
     std::unique_ptr<Scene> activeScene;
 

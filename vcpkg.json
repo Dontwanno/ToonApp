@@ -8,6 +8,7 @@
       "glad",
       "stb",
       "bullet3",
+      "tinyxml2",
       {
         "name": "imgui",
         "features": [

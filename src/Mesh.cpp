@@ -1,5 +1,7 @@
 #include "Mesh.h"
 #include <string>
+//include random number generator
+#include <random>
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures) {
     this->vertices = vertices;
@@ -16,12 +18,12 @@ void Mesh::Draw(unsigned int shaderProgram) {
     if (textures.empty()) {
         // If no textures, bind a 1x1 White Texture to slot 0
         // We use a static variable so we only create this texture ONCE for the whole program
-        static unsigned int orangeTextureID = 0;
-        if (orangeTextureID == 0) {
-            glGenTextures(1, &orangeTextureID);
-            glBindTexture(GL_TEXTURE_2D, orangeTextureID);
-            unsigned char orange[] = {255, 165, 0};
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, orange);
+        static unsigned int randomTextureID = 0;
+        if (randomTextureID == 0) {
+            glGenTextures(1, &randomTextureID);
+            glBindTexture(GL_TEXTURE_2D, randomTextureID);
+            unsigned char random[] = {static_cast<unsigned char>(rand() % 255), static_cast<unsigned char>(rand() % 255), static_cast<unsigned char>(rand() % 255)};
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, random);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -29,7 +31,7 @@ void Mesh::Draw(unsigned int shaderProgram) {
         }
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, orangeTextureID);
+        glBindTexture(GL_TEXTURE_2D, randomTextureID);
         
         // Tell the shader to use Texture Unit 0 for "texture_diffuse1"
         glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse1"), 0);
