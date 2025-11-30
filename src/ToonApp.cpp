@@ -14,21 +14,13 @@ ToonApp::ToonApp(int width, int height, const char* title)
     lastX = width / 2.0f;
     lastY = height / 2.0f;
     
-    toonShader = std::make_shared<Shader>(FileSystem::getPath("shaders/regularshader.glsl"));
+    regularShader = std::make_shared<Shader>(FileSystem::getPath("shaders/regularshader.glsl"));
     postProcessShader = std::make_shared<Shader>(FileSystem::getPath("shaders/passthrough.glsl"));
-    backpackModel = std::make_shared<Model>(FileSystem::getPath("assets/backpack/backpack.obj"));
     activeScene = std::make_unique<Scene>();
-
-    auto cubeModel = std::make_shared<Model>(FileSystem::getPath("assets/shapes/cube.obj"));
-    auto box = std::make_unique<Entity>(cubeModel);
-    box->scale = glm::vec3(1.0f); // 1x1x1 meters
-    // Create Physics Body (Size 0.5 because Bullet uses half-extents)
-    box->rigidBody = activeScene->physics->CreateBox(glm::vec3(0.5f), 10.0f, glm::vec3(0, 10, 0)); 
-    activeScene->AddEntity(std::move(box));
-    activeScene->physics->CreateStaticPlane();
-
+    kukaRobot = std::make_unique<KukaRobot>(glm::vec3(0, 0, 0));
     
-
+    // Create scene with plane
+    activeScene->physics->CreateStaticPlane();
 
     gameBuffer = std::make_unique<FrameBuffer>(scrWidth, scrHeight);
 
@@ -139,29 +131,30 @@ void ToonApp::Update() {
 }
 
 void ToonApp::RenderScene() {
-    if (!toonShader || !camera || !backpackModel) return; // Safety check
+    if (!regularShader || !camera || !kukaRobot) return; // Safety check
 
     glClearColor(bgColor.r, bgColor.g, bgColor.b, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    toonShader->use();
+    regularShader->use();
     
     glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)scrWidth / (float)scrHeight, 0.1f, 100.0f);
     glm::mat4 view = camera->GetViewMatrix();
     
-    toonShader->setMat4("projection", projection);
-    toonShader->setMat4("view", view);
-    toonShader->setVec3("lightPos", lightPos);
-    toonShader->setVec3("viewPos", camera->Position);
-    toonShader->setVec3("lightColor", lightColor);
+    regularShader->setMat4("projection", projection);
+    regularShader->setMat4("view", view);
+    regularShader->setVec3("lightPos", lightPos);
+    regularShader->setVec3("viewPos", camera->Position);
+    regularShader->setVec3("lightColor", lightColor);
 
     glm::mat4 modelMatrix = glm::mat4(1.0f);
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f)); 
     // modelMatrix = glm::rotate(modelMatrix, (float)glfwGetTime() * glm::radians(modelRotSpeed), glm::vec3(0.0f, 1.0f, 0.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f)); 
-    toonShader->setMat4("model", modelMatrix);
-    backpackModel->Draw(toonShader->ID);
-    activeScene->Draw(toonShader.get());
+    regularShader->setMat4("model", modelMatrix);
+    kukaRobot->Draw(regularShader.get());
+    activeScene->Draw(regularShader.get());
+
 }
 
 void ToonApp::RenderUI() {
@@ -177,6 +170,17 @@ void ToonApp::RenderUI() {
     // ImGui::SliderFloat("Scale", &modelScale, 0.001f, 1.0f);
     // ImGui::SliderFloat("Rotation", &modelRotSpeed, 0.0f, 100.0f);
     ImGui::Text(mouseCaptured ? "GAME MODE (ALT to unlock)" : "UI MODE (ALT to capture)");
+    ImGui::End();
+
+        ImGui::Begin("Robot Control");
+    // We start at 1 because Link 0 is the static base
+    ImGui::SliderFloat("Joint 1", &kukaRobot->links[1].currentAngle, -170.0f, 170.0f);
+    ImGui::SliderFloat("Joint 2", &kukaRobot->links[2].currentAngle, -120.0f, 120.0f);
+    ImGui::SliderFloat("Joint 3", &kukaRobot->links[3].currentAngle, -170.0f, 170.0f);
+    ImGui::SliderFloat("Joint 4", &kukaRobot->links[4].currentAngle, -120.0f, 120.0f);
+    ImGui::SliderFloat("Joint 5", &kukaRobot->links[5].currentAngle, -170.0f, 170.0f);
+    ImGui::SliderFloat("Joint 6", &kukaRobot->links[6].currentAngle, -120.0f, 120.0f);
+    ImGui::SliderFloat("Joint 7", &kukaRobot->links[7].currentAngle, -175.0f, 175.0f);
     ImGui::End();
 
     ImGui::Render();

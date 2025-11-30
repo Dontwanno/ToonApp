@@ -1,19 +1,30 @@
 #include "Scene.h"
 #include <vector>
 
-// Helper to create a checkered texture for the ground
+#include <algorithm> // Required for std::min
+
+#include <algorithm> // for std::min
+
 unsigned int createCheckeredTexture() {
     unsigned int textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
-    const int width = 64;
-    const int height = 64;
+    // FIX 1: Increase resolution from 64 -> 1024
+    // This keeps the texture sharp much further into the distance
+    const int width = 1024;
+    const int height = 1024;
     std::vector<unsigned char> data(width * height * 3);
+
+    // Adjust grid size since we increased resolution
+    int gridSize = 128; // Larger grid squares in pixels
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            unsigned char color = ((x / 8 + y / 8) % 2 == 0) ? 200 : 100;
+            // Simple math to create the checker pattern
+            bool isDark = ((x / gridSize) + (y / gridSize)) % 2 == 0;
+            unsigned char color = isDark ? 200 : 100;
+            
             int index = (y * width + x) * 3;
             data[index] = color;
             data[index + 1] = color;
@@ -24,10 +35,21 @@ unsigned int createCheckeredTexture() {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.data());
     glGenerateMipmap(GL_TEXTURE_2D);
 
+    // FIX 2: Set Anisotropic Filtering
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Force Anisotropy (Mac/OpenGL 4.1 compatible)
+    #ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+        #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
+        #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+    #endif
+
+    GLfloat maxAnisotropy = 0.0f;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, std::min(16.0f, maxAnisotropy));
 
     return textureID;
 }
@@ -39,13 +61,14 @@ unsigned int groundTexture = 0;
 void setupPlane() {
     float planeVertices[] = {
         // positions            // normals         // texcoords
-         25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
-        -25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-        -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
+         // CHANGE Y FROM -0.5f TO 0.0f
+         25.0f, 0.0f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
+        -25.0f, 0.0f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+        -25.0f, 0.0f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
 
-         25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
-        -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
-         25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 25.0f
+         25.0f, 0.0f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
+        -25.0f, 0.0f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
+         25.0f, 0.0f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 25.0f
     };
 
     glGenVertexArrays(1, &planeVAO);

@@ -13,6 +13,28 @@ void Mesh::Draw(unsigned int shaderProgram) {
     unsigned int diffuseNr  = 1;
     unsigned int specularNr = 1;
 
+    if (textures.empty()) {
+        // If no textures, bind a 1x1 White Texture to slot 0
+        // We use a static variable so we only create this texture ONCE for the whole program
+        static unsigned int orangeTextureID = 0;
+        if (orangeTextureID == 0) {
+            glGenTextures(1, &orangeTextureID);
+            glBindTexture(GL_TEXTURE_2D, orangeTextureID);
+            unsigned char orange[] = {255, 165, 0};
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, orange);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        }
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, orangeTextureID);
+        
+        // Tell the shader to use Texture Unit 0 for "texture_diffuse1"
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse1"), 0);
+    }
+
     for(unsigned int i = 0; i < textures.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i); // Active proper texture unit
         

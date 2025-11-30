@@ -1,7 +1,6 @@
 #include "Model.h"
 #include <iostream>
 #include <stb_image.h> 
-#include "FileSystem.h"
 
 // Forward declaration
 unsigned int LoadTexture(const char *path, const std::string &directory, const aiScene* scene);
@@ -195,6 +194,19 @@ unsigned int LoadTexture(const char *path, const std::string &directory, const a
         // Filtering: Linear Mipmap Linear is the highest quality standard filtering
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        // 1. Manually define the constants if the header is missing them
+        #ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+        #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
+        #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+        #endif
+
+        // 2. Query and Apply (No #ifdef check, just run it)
+        GLfloat maxAnisotropy = 0.0f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
+
+        // Clamp to 16.0f (or whatever the GPU supports) and apply
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, std::min(16.0f, maxAnisotropy));
 
         stbi_image_free(data);
     } else {

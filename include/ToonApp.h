@@ -13,6 +13,9 @@
 #include "Model.h"
 #include "Scene.h"
 #include "Entity.h"
+#include "Kuka.h"
+
+
 
 class ToonApp {
 public:
@@ -34,9 +37,10 @@ private:
     std::unique_ptr<FrameBuffer> gameBuffer;
     
     // Assets
-    std::shared_ptr<Shader> toonShader;
+    std::shared_ptr<Shader> regularShader;
     std::shared_ptr<Shader> postProcessShader;
     std::shared_ptr<Model> backpackModel; 
+    std::unique_ptr<KukaRobot> kukaRobot;
 
     std::unique_ptr<Scene> activeScene;
 
