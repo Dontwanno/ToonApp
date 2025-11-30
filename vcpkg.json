@@ -1,0 +1,19 @@
+{
+    "name": "toongame",
+    "version-string": "1.0.0",
+    "dependencies": [
+      "glfw3",
+      "glm",
+      "assimp",
+      "glad",
+      "stb",
+      "bullet3",
+      {
+        "name": "imgui",
+        "features": [
+          "glfw-binding",
+          "opengl3-binding"
+        ]
+      }
+    ]
+  }
