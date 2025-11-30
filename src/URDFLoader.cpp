@@ -3,7 +3,6 @@
 #include <tinyxml2.h>
 #include <iostream>
 #include <map>
-#include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 // #define GLM_ENABLE_EXPERIMENTAL // Uncomment if needed for your specific GLM version
