@@ -31,6 +31,7 @@ in vec2 TexCoords;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform vec3 lightColor;
+uniform vec3 objectColor;
 uniform sampler2D texture_diffuse1;
 
 void main() {
@@ -51,7 +52,7 @@ void main() {
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
     vec3 specular = specularStrength * spec * lightColor;  
         
-    vec3 objectColor = texture(texture_diffuse1, TexCoords).rgb;
-    vec3 result = (ambient + diffuse + specular) * objectColor;
+    vec3 textureColor = texture(texture_diffuse1, TexCoords).rgb;
+    vec3 result = (ambient + diffuse + specular) * textureColor * objectColor;
     FragColor = vec4(result, 1.0);
 }

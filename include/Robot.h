@@ -7,6 +7,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 
+enum JointType {
+    REVOLUTE,
+    PRISMATIC,
+    FIXED
+};
+
 // A single visual element (mesh) attached to a link
 struct RobotVisual {
     std::shared_ptr<Model> model;
@@ -20,7 +26,8 @@ struct RobotLink {
     
     // Support multiple visuals per link (e.g., grey body + orange bands)
     std::vector<RobotVisual> visuals;
-    
+
+    JointType jointType;
     // Tree Hierarchy
     RobotLink* parent = nullptr;
     std::vector<RobotLink*> children;

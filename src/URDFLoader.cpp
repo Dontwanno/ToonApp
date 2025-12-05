@@ -68,6 +68,7 @@ bool URDFLoader::Load(const std::string& path, Robot& robot) {
     while (xmlLink) {
         auto newLink = std::make_shared<RobotLink>();
         newLink->name = xmlLink->Attribute("name");
+        newLink->jointType = FIXED; // Default, will be overridden if link has a parent joint
         
         // -- Loop through ALL Visual tags (Fixed) --
         XMLElement* visual = xmlLink->FirstChildElement("visual");
@@ -155,6 +156,21 @@ bool URDFLoader::Load(const std::string& path, Robot& robot) {
 
                 child->parent = parent;
                 parent->children.push_back(child);
+
+                // Parse joint type
+                const char* jointTypeStr = xmlJoint->Attribute("type");
+                if (jointTypeStr) {
+                    std::string typeStr(jointTypeStr);
+                    if (typeStr == "revolute" || typeStr == "continuous") {
+                        child->jointType = REVOLUTE;
+                    } else if (typeStr == "prismatic") {
+                        child->jointType = PRISMATIC;
+                    } else {
+                        child->jointType = FIXED; // fixed, floating, planar, etc.
+                    }
+                } else {
+                    child->jointType = FIXED; // Default if type not specified
+                }
 
                 XMLElement* origin = xmlJoint->FirstChildElement("origin");
                 XMLElement* pose = xmlJoint->FirstChildElement("pose"); // SDF

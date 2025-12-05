@@ -176,6 +176,14 @@ void ToonApp::RenderUI() {
     ImGui::Text(mouseCaptured ? "GAME MODE (ALT to unlock)" : "UI MODE (ALT to capture)");
     ImGui::End();
 
+    ImGui::Begin("Robot Angle Controls");
+    for (auto& link : robot->allLinks) {
+        // if link is revolute, show the slider
+        if (link->jointType == REVOLUTE) {
+            ImGui::SliderFloat(link->name.c_str(), &link->currentAngle, -360.0f, 360.0f);
+        }
+    }
+    ImGui::End();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
