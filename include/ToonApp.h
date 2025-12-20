@@ -12,8 +12,7 @@
 #include "Shader.h"
 #include "Model.h"
 #include "Scene.h"
-#include "Entity.h"
-#include "Robot.h"
+#include "Physics.h"
 
 class ToonApp {
 public:
@@ -38,9 +37,9 @@ private:
     std::shared_ptr<Shader> regularShader;
     std::shared_ptr<Shader> postProcessShader;
     std::shared_ptr<Model> backpackModel; 
-    std::unique_ptr<Robot> robot;
 
     std::unique_ptr<Scene> activeScene;
+    std::unique_ptr<MujocoSim> mujocoSim;
 
     // State
     glm::vec3 lightPos;

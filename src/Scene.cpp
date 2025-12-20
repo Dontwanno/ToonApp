@@ -88,7 +88,6 @@ void setupPlane() {
 }
 
 Scene::Scene() {
-    physics = std::make_unique<PhysicsWorld>();
     setupPlane(); // Initialize the ground plane
 }
 
@@ -98,25 +97,12 @@ Scene::~Scene() {
     glDeleteTextures(1, &groundTexture);
 }
 
-void Scene::AddEntity(std::unique_ptr<Entity> entity) {
-    entities.push_back(std::move(entity));
-}
-
 void Scene::Update(float deltaTime) {
-    // 1. Step Physics
-    physics->Step(deltaTime);
 
-    // 2. Sync Graphics to Physics
-    for (auto& entity : entities) {
-        entity->UpdatePhysicsTransform();
-    }
 }
 
 void Scene::Draw(Shader* shader) {
-    // Draw Entities
-    for (auto& entity : entities) {
-        entity->Draw(shader, glm::mat4(1.0f));
-    }
+
 
     // Draw Ground Plane
     if (planeVAO != 0) {
@@ -125,6 +111,8 @@ void Scene::Draw(Shader* shader) {
         
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, groundTexture);
+        shader->setBool("hasTexture", true);
+        shader->setVec3("baseColor", glm::vec3(0.4f, 0.4f, 0.4f));
         shader->setInt("texture_diffuse1", 0); // Assuming texture unit 0
 
         glBindVertexArray(planeVAO);
@@ -134,6 +122,4 @@ void Scene::Draw(Shader* shader) {
 }
 
 void Scene::Clear() {
-    entities.clear();
-    // Also need to clear physics bodies ideally, but PhysicsWorld destructor handles it
 }

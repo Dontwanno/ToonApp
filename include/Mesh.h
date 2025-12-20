@@ -22,6 +22,8 @@ public:
     std::vector<Vertex>       vertices;
     std::vector<unsigned int> indices;
     std::vector<Texture>      textures; // New!
+    bool hasTexture; // <--- Add this to check if texture exists
+    glm::vec3 baseColor; // <--- Add this to store the fallback color
 
     // Constructor
     Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);

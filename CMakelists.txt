@@ -25,9 +25,8 @@ find_package(assimp CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(Stb REQUIRED)
 find_package(imgui CONFIG REQUIRED)
-find_package(Bullet CONFIG REQUIRED)
-find_package(tinyxml2 CONFIG REQUIRED)
-
+find_package(urdfdom CONFIG REQUIRED)
+find_package(mujoco CONFIG REQUIRED)
 
 # --- AUTOMATIC SOURCE COLLECTION ---
 # Finds any .cpp in src/ or subfolders (e.g. src/Entities/Player.cpp)
@@ -59,10 +58,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     assimp::assimp
     glad::glad
     imgui::imgui
-    tinyxml2::tinyxml2
-    BulletDynamics
-    BulletCollision
-    LinearMath
+
+    urdfdom::urdf_parser     
+    urdfdom::urdfdom_model
+    urdfdom::urdfdom_world
+
+    mujoco::mujoco
 )
 
 if(APPLE)

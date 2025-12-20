@@ -1,8 +1,12 @@
 #include "ToonApp.h"
 #include "FileSystem.h"
+#include "Physics.h"
+
 #include <iostream>
-#include "URDFLoader.h"
-#include "Robot.h"
+#include <cstdlib> 
+#include <ctime>
+
+
 
 ToonApp::ToonApp(int width, int height, const char* title) 
     : scrWidth(width), scrHeight(height), firstMouse(true), mouseCaptured(true),
@@ -18,17 +22,20 @@ ToonApp::ToonApp(int width, int height, const char* title)
     
     regularShader = std::make_shared<Shader>(FileSystem::getPath("shaders/regularshader.glsl"));
     postProcessShader = std::make_shared<Shader>(FileSystem::getPath("shaders/passthrough.glsl"));
-    activeScene = std::make_unique<Scene>();
-    robot = std::make_unique<Robot>(glm::vec3(0,0,0));
-    URDFLoader::Load("assets/kuka/urdf/iiwa14_no_collision.urdf", *robot);
-    
-    // Create scene with plane
-    activeScene->physics->CreateStaticPlane();
 
     gameBuffer = std::make_unique<FrameBuffer>(scrWidth, scrHeight);
 
+    activeScene = std::make_unique<Scene>();
+
+
+    // assets/google-deepmind mujoco_menagerie main kuka_iiwa_14
+    mujocoSim = std::make_unique<MujocoSim>();
+    mujocoSim->loadModel(FileSystem::getPath("assets/google-deepmind mujoco_menagerie main kuka_iiwa_14/iiwa14.xml"));
+
     // 3. Initialize UI
     InitImGui();
+
+    
 
     // 4. REGISTER CALLBACKS LAST
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -39,7 +46,7 @@ ToonApp::ToonApp(int width, int height, const char* title)
 }
 
 ToonApp::~ToonApp() {
-    // Smart pointers handle their own cleanup. 
+    // Clean up globals
     if (window) {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
@@ -130,7 +137,7 @@ void ToonApp::ProcessInput() {
 }
 
 void ToonApp::Update() {
-    activeScene->Update(deltaTime); // <--- Add this!
+    activeScene->Update(deltaTime);
 }
 
 void ToonApp::RenderScene() {
@@ -152,13 +159,10 @@ void ToonApp::RenderScene() {
 
     glm::mat4 modelMatrix = glm::mat4(1.0f);
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f)); 
-    // modelMatrix = glm::rotate(modelMatrix, (float)glfwGetTime() * glm::radians(modelRotSpeed), glm::vec3(0.0f, 1.0f, 0.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f)); 
     regularShader->setMat4("model", modelMatrix);
+    
     activeScene->Draw(regularShader.get());
-
-    robot->Draw(regularShader.get());
-
 }
 
 void ToonApp::RenderUI() {
@@ -171,19 +175,18 @@ void ToonApp::RenderUI() {
     ImGui::DragFloat3("Light Pos", &lightPos.x, 0.1f);
     ImGui::ColorEdit3("Light Color", &lightColor.x);
     ImGui::ColorEdit3("Background", &bgColor.x);
-    // ImGui::SliderFloat("Scale", &modelScale, 0.001f, 1.0f);
-    // ImGui::SliderFloat("Rotation", &modelRotSpeed, 0.0f, 100.0f);
     ImGui::Text(mouseCaptured ? "GAME MODE (ALT to unlock)" : "UI MODE (ALT to capture)");
     ImGui::End();
 
-    ImGui::Begin("Robot Angle Controls");
-    for (auto& link : robot->allLinks) {
-        // if link is revolute, show the slider
-        if (link->jointType == REVOLUTE) {
-            ImGui::SliderFloat(link->name.c_str(), &link->currentAngle, -360.0f, 360.0f);
-        }
-    }
-    ImGui::End();
+    // Robot Controls
+    // ImGui::Begin("Robot Controls");
+    // static float j1=0, j2=0, j3=0, j4=0;
+    // if(ImGui::SliderFloat("Joint 1", &j1, -3.0f, 3.0f)) mRobot->SetJointTarget("iiwa_joint_1", j1);
+    // if(ImGui::SliderFloat("Joint 2", &j2, -2.0f, 2.0f)) mRobot->SetJointTarget("iiwa_joint_2", j2);
+    // if(ImGui::SliderFloat("Joint 3", &j3, -3.0f, 3.0f)) mRobot->SetJointTarget("iiwa_joint_3", j3);
+    // if(ImGui::SliderFloat("Joint 4", &j4, -2.0f, 2.0f)) mRobot->SetJointTarget("iiwa_joint_4", j4);
+    // ImGui::End();
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
